@@ -30,10 +30,16 @@ class Input extends React.Component {
   
     decreaseNumber = () => {
       this.setState((prev) => {
-        return {
-          ...prev,
-          number: +prev.number - +prev.changeBy,
-        };
+        if (this.state.number === 0) {
+            return {
+                ...prev,
+              };
+        } else {
+            return {
+                ...prev,
+                number: +prev.number - +prev.changeBy,
+              };
+        }
       });
     };
   
