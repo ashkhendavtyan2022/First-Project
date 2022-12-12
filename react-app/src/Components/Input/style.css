@@ -6,3 +6,13 @@
     display: block;
     margin-top: 10px;
 }
+
+.demo {
+    margin-top: 100px;
+    margin-left: 40%;
+}
+
+img {
+    width: 500px;
+    height: 300px;
+}
