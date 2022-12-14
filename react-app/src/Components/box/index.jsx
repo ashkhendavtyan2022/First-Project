@@ -34,7 +34,7 @@ class Boxes extends React.Component {
     render() {
         return <div>
             {console.log(this.state.f)}
-        <h1>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente facere in eius eligendi debitis, laborum?</h1>
+        <h1 className="randomText">Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente facere in eius eligendi debitis, laborum?</h1>
         <p>{this.state.f}</p>
         <button onClick={this.change}>Change</button>
      </div>
