@@ -1,0 +1,57 @@
+var AlertReadyForDownloadLinkObj,ReadyExportAlertFilenameObj,ReadyExportAlertStatusObj,RemoveAllFilesContainerObj,PreparingReportExportAlertObj,ReadyCSVExportAlertObj,ReadyFlagNotificationObj;var NotificationRightPos;var NotificationCouter=0;var RemoveAllExportedFiles;var NotificationObjReady=false;var NotificationsReady=false;function fetchTopNotifications(data)
+{if(typeof(data)!='undefined'&&typeof(data.ShowPopup)!='undefined'&&data.ShowPopup==true){HidePreparingReportExportAlert();HideReadyExportNotifications(['download_ready_export','ready_export']);RemoveAllFilesContainerObj.show();NotificationCouter=0;ReadyFlagNotificationObj.text(NotificationCouter).hide();$("#top_notifications").removeClass("is-having-unread");$("#top_notifications_files").html('<div class="loadingEmpty"><img src="/images/loader.gif" alt="Wait please..." title="Wait please..." width="18" height="18" /></div>');}
+if(typeof(data)=='undefined'||data==null||data==''||typeof(data.files)=='undefined'||data.files==null)
+{$.ajax({type:"POST",url:'/ajax/user/get/top-notifications/list'}).done(function(data){ProcessTopNotifications(data);});}
+else
+{ProcessTopNotifications(data);}
+return false}
+function ProcessTopNotifications(data)
+{if(typeof(data)!='undefined'&&data!=null&&data!=''&&typeof(data.status)!='undefined')
+{if(data.status){$('#top_notifications').attr('data-toggle','dropdown');$('#top_notifications_files').html('');$.each(data.files,function(key,value){currentFile=$('#top_notifications_template').html();downloadLink='javascript:void(0);';statusIcon='processing';status=value.status;errorLink="";value.time=value.time.replace('on','');if(value.status=='completed'){if(value.filesize!='0'&&value.filesize!='')
+{statusIcon='download';status=value.ext+', '+value.filesize+', '+value.time;if(value.pdf==1){downloadLink='/site-explorer/pdf-download/'+value.id;}
+else if(value.xlsx==1){downloadLink='/site-audit/download/url-details/'+value.id;}
+else{downloadLink='/site-explorer/csv-download/'+value.id;}}else
+{statusIcon='alerts-error';status='Export failed, '+value.time;errorLink="error";}}
+currentFile=currentFile.replace(/\{fileID\}/g,value.id);currentFile=currentFile.replace('{downloadLink}',downloadLink);var LinkClass="is-read";if(value.Downloaded==0){LinkClass='';}
+currentFile=currentFile.replace(/\{LinkClass\}/g,LinkClass);currentFile=currentFile.replace(/\{filename\}/g,value.filename);currentFile=currentFile.replace('{statusIcon}',statusIcon);currentFile=currentFile.replace('{errorLink}',errorLink);currentFile=currentFile.replace(/{status}/g,status);if(value.status=='completed'){currentFile=currentFile.replace(/{style_for_hide}/g,'');}
+else{currentFile=currentFile.replace(/{style_for_hide}/g,'style="display: none;"');}
+$('#top_notifications_files').append(currentFile);RemoveAllExportedFiles=$('#removeAllExportedFiles');RemoveAllExportedFiles.removeClass('hide');});if($.trim($('#top_notifications_files').html())!=''){RemoveAllFilesContainerObj.show();}
+else{RemoveAllFilesContainerObj.hide();}
+$(".delete_top_notification").unbind("click");$(".delete_top_notification").click(function(){if($(this).data("status")!='processing')
+{deleteCSVFile($(this).attr('value'));return false;}
+else
+{return false;}});}
+else{NotificationCouter=0;ReadyFlagNotificationObj.text(NotificationCouter).attr('title','0').hide();$("#top_notifications").removeClass("is-having-unread");}
+if(!data.status||data.files.length==0){EmptyListCase();}}}
+function deleteCSVFile(fileID)
+{$.post("/ajax/user/get/top-notifications/delete",{fileID:fileID},function(response)
+{if(typeof(response.Count)=='undefined'||Number(response.Count)<=0){EmptyListCase();}
+$('#top_notification_files_'+fileID).remove();},"json");}
+function EmptyListCase()
+{$("#top_notifications").removeClass("notEmpty").removeClass("animate");$("#top_notifications_files").html('<div class="loadingEmpty"><p class="m-b-0 mb-0">You have no exported files</p></div>');RemoveAllExportedFiles=$('#removeAllExportedFiles');RemoveAllExportedFiles.addClass('hide');}
+function ShowPreparingReportExportAlert()
+{setNumberOfCompletedExportFiles();var stackHeight=SystemNotification.getStackHeight();PreparingReportExportAlertObj.addClass("slide-down");PreparingReportExportAlertObj.one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend',function(){PreparingReportExportAlertObj.css({top:(SystemNotification.positionTop+stackHeight)+'px',});});setTimeout(function(){SystemNotification.resetPosiitions();},400)
+setTimeout(function(){HidePreparingReportExportAlert();},6000);return false;}
+function HidePreparingReportExportAlert()
+{PreparingReportExportAlertObj.removeClass("slide-down").css('top','');setTimeout(function(){SystemNotification.resetPosiitions();},400)
+return false;}
+function ShowReadyReportExportNotificationWithDownload(Options)
+{var DownloadLink='';var DownloadFilename='';var FileType='';var FileSize='';var TimeToDisplaySec=0;if(typeof(Options)!='undefined'&&Options!=null){if(typeof(Options.DownloadLink)!='undefined'&&Options.DownloadLink!=null){DownloadLink=$.trim(Options.DownloadLink);}
+if(typeof(Options.DownloadFilename)!='undefined'&&Options.DownloadFilename!=null){DownloadFilename=$.trim(Options.DownloadFilename);}
+if(typeof(Options.FileType)!='undefined'&&Options.FileType!=null){FileType=$.trim(Options.FileType);}
+if(typeof(Options.FileSize)!='undefined'&&Options.FileSize!=null){FileSize=$.trim(Options.FileSize);}
+if(typeof(Options.TimeToDisplaySec)!='undefined'){TimeToDisplaySec=Number(Options.TimeToDisplaySec);}}
+if(!$('#export-notifications').hasClass('show')){var notificationId=SystemNotification.Show({type:'success',dataType:'download_ready_export',titleText:'Your export is complete',messageText:DownloadFilename,isDownloadReadyExport:true,TimeToDisplaySec:TimeToDisplaySec});$('#ReadyForDownloadLink'+notificationId).attr('href',DownloadLink).attr('title',DownloadFilename);$('#ReadyExportStatus'+notificationId).html(FileType+', '+FileSize);$('#ReadyForDownloadLink'+notificationId).bind("click",function(event){$('#SystemNotification'+notificationId).find('span.close').click();});NotificationCouter++;ReadyFlagNotificationObj.text(NotificationCouter).show();$("#top_notifications").addClass("is-having-unread");}
+return false;}
+function ShowReadyCSVExportNotification(TimeToDisplaySec)
+{if(!$('#export-notifications').hasClass('open')){var notificationId=SystemNotification.Show({type:'success',dataType:'ready_export',titleText:'Your export is complete',TimeToDisplaySec:TimeToDisplaySec});$('#SystemNotification'+notificationId).bind("click",function(event){$('#top_notifications').click();});}
+return false;}
+function ShowErrorExportNotification(TimeToDisplaySec)
+{if(!$('#export-notifications').hasClass('open')){var notificationId=SystemNotification.Show({type:'error',dataType:'download_ready_export',titleText:'Export failed',messageHtml:'Please try again in a few minutes. <a href="javascript:Intercom(\'show\');">Contact us</a> if error repeats.',TimeToDisplaySec:TimeToDisplaySec});$('#SystemNotification'+notificationId).bind("click",function(event){$('#top_notifications').click();});}
+return false;}
+function HideReadyExportNotifications(listOfTypes)
+{if(listOfTypes!=null&&listOfTypes.length>0){var Notifications=$("div[name='SystemNotifications'].slide-down");if(Notifications.length>0){Notifications.each(function(index){var itemObj=$(this);var dataType=$.trim(itemObj.data('type'));if(listOfTypes.indexOf(dataType)>=0){itemObj.removeClass("slide-down").css('top','');SystemNotification.resetPosiitions();setTimeout(function(){itemObj.remove();},2000);}});}}
+return false;}
+function topNotification(){if($(window).scrollTop()>50)
+$('.alert-ahrefs-export.slide-down').addClass('fixedTop');else
+$('.alert-ahrefs-export.slide-down').removeClass('fixedTop');}

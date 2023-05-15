@@ -1,0 +1,21 @@
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.p-admin {
+    width: 300px;
+    height: 200px;
+    background-color: silver;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.p-admin > input, button {
+    width: 80%;
+    display: block;
+}
